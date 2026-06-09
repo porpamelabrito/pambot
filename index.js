@@ -21,7 +21,7 @@ const oauth = OAuth({
   },
   signature_method: 'HMAC-SHA1',
   hash_function(base, key) {
-    return crypto.createHmac('sha256', key).update(base).digest('base64');
+    return crypto.createHmac('sha1', key).update(base).digest('base64');
   },
 });
 
