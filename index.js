@@ -1,14 +1,14 @@
 require('dotenv').config();
 const { Telegraf, session } = require('telegraf');
 const LocalSession = require('telegraf-session-local');
-const Anthropic = require('@anthropic-ai/sdk');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 const OAuth = require('oauth-1.0a');
 const crypto = require('crypto');
 const axios = require('axios');
 
 // ── Clientes ──────────────────────────────────────────────
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // ── Sessão local (guarda tweet pendente) ──────────────────
 bot.use(new LocalSession({ database: 'sessions.json' }).middleware());
@@ -30,14 +30,11 @@ const twitterToken = {
   secret: process.env.TWITTER_ACCESS_SECRET,
 };
 
-// ── Melhora o tweet com Claude ────────────────────────────
+// ── Melhora o tweet com Gemini ────────────────────────────
 async function melhorarTweet(textoOriginal) {
-  const msg = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 300,
-    messages: [{
-      role: 'user',
-      content: `Você é especialista em copywriting viral para X/Twitter.
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+  const prompt = `Você é especialista em copywriting viral para X/Twitter.
 
 Melhore este tweet para uma fotógrafa e videomaker de casamentos, mantendo a voz dela — poética, confiante, emocionalmente impactante.
 
@@ -48,10 +45,10 @@ Regras:
 - Mantenha a essência do texto original
 - Retorne APENAS o tweet melhorado, sem explicações
 
-Tweet original: "${textoOriginal}"`
-    }]
-  });
-  return msg.content[0].text.trim();
+Tweet original: "${textoOriginal}"`;
+
+  const result = await model.generateContent(prompt);
+  return result.response.text().trim();
 }
 
 // ── Publica no X/Twitter ──────────────────────────────────
