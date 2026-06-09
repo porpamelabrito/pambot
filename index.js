@@ -75,9 +75,7 @@ bot.command('start', (ctx) => {
   ctx.reply(
     '👋 Oi! Sou o PamBot.\n\n' +
     'Manda seu texto e eu melhoro com IA antes de tuitar.\n\n' +
-    '📝 /tweet <seu texto>\n' +
-    '✅ /confirmar — publica o tweet melhorado\n' +
-    '❌ /cancelar — descarta e começa de novo'
+    '📝 /tweet <seu texto>'
   );
 });
 
@@ -97,13 +95,13 @@ bot.command('tweet', async (ctx) => {
     ctx.session.pendingTweet = melhorado;
 
     await ctx.reply(
-      `*Tweet melhorado:*\n\n"${melhorado}"\n\n_${melhorado.length}/280 caracteres_\n\nPublicar agora?`,
+      `*Tweet melhorado:*\n\n${melhorado}\n\n_${melhorado.length}/280 caracteres_\n\nO que deseja fazer?`,
       {
         parse_mode: 'Markdown',
         reply_markup: {
           inline_keyboard: [[
-            { text: '✅ Publicar', callback_data: 'confirmar' },
-            { text: '❌ Cancelar', callback_data: 'cancelar' },
+            { text: '🐦 Publicar no X', callback_data: 'confirmar' },
+            { text: '📋 Só copiar', callback_data: 'copiar' },
           ]]
         }
       }
@@ -114,10 +112,10 @@ bot.command('tweet', async (ctx) => {
   }
 });
 
-// Botões inline
+// ── Botões inline ─────────────────────────────────────────
+
 bot.action('confirmar', async (ctx) => {
   const texto = ctx.session?.pendingTweet;
-
   if (!texto) return ctx.answerCbQuery('Nenhum tweet pendente.');
 
   try {
@@ -126,19 +124,18 @@ bot.action('confirmar', async (ctx) => {
     await ctx.editMessageText('✅ Tuitado com sucesso!');
   } catch (err) {
     console.error(err);
-    await ctx.editMessageText('❌ Erro: ' + (err.response?.data?.detail || err.response?.data?.title || err.message));
+    await ctx.editMessageText('❌ Erro ao tuitar. Verifique suas keys do X.');
   }
 });
 
-bot.action('cancelar', async (ctx) => {
-  ctx.session.pendingTweet = null;
-  await ctx.editMessageText('Cancelado. Manda outro quando quiser 👍');
-});
+bot.action('copiar', async (ctx) => {
+  const texto = ctx.session?.pendingTweet;
+  if (!texto) return ctx.answerCbQuery('Nenhum tweet pendente.');
 
-// /cancelar (comando de texto também)
-bot.command('cancelar', (ctx) => {
+  await ctx.editMessageText(
+    `📋 Segura o dedo no texto abaixo para copiar:\n\n${texto}`,
+  );
   ctx.session.pendingTweet = null;
-  ctx.reply('Cancelado. Manda outro quando quiser 👍');
 });
 
 // ── Inicia o bot ──────────────────────────────────────────
