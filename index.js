@@ -32,7 +32,7 @@ const twitterToken = {
 
 // ── Melhora o tweet com Gemini ────────────────────────────
 async function melhorarTweet(textoOriginal) {
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
   const prompt = `Você é especialista em copywriting viral para X/Twitter.
 
