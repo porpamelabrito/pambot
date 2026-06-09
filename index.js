@@ -1,14 +1,12 @@
 require('dotenv').config();
-const { Telegraf, session } = require('telegraf');
+const { Telegraf } = require('telegraf');
 const LocalSession = require('telegraf-session-local');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
 const OAuth = require('oauth-1.0a');
 const crypto = require('crypto');
 const axios = require('axios');
 
 // ── Clientes ──────────────────────────────────────────────
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // ── Sessão local (guarda tweet pendente) ──────────────────
 bot.use(new LocalSession({ database: 'sessions.json' }).middleware());
@@ -30,9 +28,10 @@ const twitterToken = {
   secret: process.env.TWITTER_ACCESS_SECRET,
 };
 
-// ── Melhora o tweet com Gemini ────────────────────────────
+// ── Melhora o tweet com Gemini (REST direto) ──────────────
 async function melhorarTweet(textoOriginal) {
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const apiKey = process.env.GEMINI_API_KEY;
+  const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
   const prompt = `Você é especialista em copywriting viral para X/Twitter.
 
@@ -47,8 +46,11 @@ Regras:
 
 Tweet original: "${textoOriginal}"`;
 
-  const result = await model.generateContent(prompt);
-  return result.response.text().trim();
+  const response = await axios.post(url, {
+    contents: [{ parts: [{ text: prompt }] }]
+  });
+
+  return response.data.candidates[0].content.parts[0].text.trim();
 }
 
 // ── Publica no X/Twitter ──────────────────────────────────
