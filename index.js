@@ -1,6 +1,6 @@
 require('dotenv').config();
 const { Telegraf, session } = require('telegraf');
-const { LocalSession } = require('telegraf-session-local');
+const LocalSession = require('telegraf-session-local');
 const Anthropic = require('@anthropic-ai/sdk');
 const OAuth = require('oauth-1.0a');
 const crypto = require('crypto');
