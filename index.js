@@ -126,7 +126,7 @@ bot.action('confirmar', async (ctx) => {
     await ctx.editMessageText('✅ Tuitado com sucesso!');
   } catch (err) {
     console.error(err);
-    await ctx.editMessageText('❌ Erro ao tuitar. Verifique suas keys do X.');
+    await ctx.editMessageText('❌ Erro: ' + (err.response?.data?.detail || err.response?.data?.title || err.message));
   }
 });
 
